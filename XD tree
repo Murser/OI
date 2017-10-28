@@ -1,0 +1,80 @@
+#include<iostream>
+#include<algorithm>
+using std::cin; using std::cout; using std::endl;
+class Point{
+public:
+	int min;
+	int delta;
+};
+class Cow{
+public:
+	int left,right;
+};
+bool operator<(Cow a,Cow b)	{return a.right<b.right||(a.right==b.right&&a.left>b.left);}
+int x,y;
+void build(Point* a,int left,int right,int root,int* f)
+{
+	a[root].delta=0;
+	int mid=(left+right)>>1;
+	if(left==right)
+	{
+		a[root].min=f[mid];
+		return;
+	}
+	build(a,left,mid,root<<1,f);
+	build(a,mid+1,right,(root<<1)+1,f);
+	a[root].min=std::min(a[root*2].min,a[root*2+1].min);
+}
+bool search(Point* a,int left,int right,int root){
+	if(x<=left&&y>=right)
+		return a[root].min>0;
+	int* delta=&a[root].delta,mid=(left+right)>>1;
+	bool t1=true,t2=true;
+	a[root<<1].delta+=*delta;	a[(root<<1)].min+=*delta;
+	a[(root<<1)+1].delta+=*delta;	a[(root<<1)+1].min+=*delta;
+	*delta=0;
+	if(x<=mid)	t1=search(a,left,mid,root*2);
+	if(y>mid)	t2=search(a,mid+1,right,root*2+1);
+	return t1&&t2;
+}
+void change(Point* a,int left,int right,int root){
+	if(x<=left&&y>=right)
+	{
+		a[root].min--;	a[root].delta--;
+		return;
+	}
+	int* delta=&a[root].delta,mid=(left+right)>>1;
+	a[root<<1].delta+=*delta;	a[(root<<1)].min+=*delta;
+	a[(root<<1)+1].delta+=*delta;	a[(root<<1)+1].min+=*delta;
+	*delta=0;
+	if(x<=mid)	change(a,left,mid,root*2);
+	if(y>mid)	change(a,mid+1,right,root*2+1);
+	a[root].min=std::min(a[root*2].min,a[root*2+1].min);
+}
+int main()
+{
+	//freopen("touhou.in","r",stdin);
+	int n,m;	cin>>n>>m;
+	Point* a=new Point[(n+1000)*4];
+	int* f=new int[n+1];
+	for(int i=1;i<=n;i++)	cin>>f[i];
+	Cow* c=new Cow[m];
+	for(int i=0;i<m;i++)
+		cin>>c[i].left>>c[i].right;
+	std::sort(c,c+m);
+	build(a,1,n,1,f);
+	int sum=0;
+	for(int i=0;i<m;i++)
+	{
+		x=c[i].left;	y=c[i].right;
+		if(search(a,1,n,1))
+		{
+			change(a,1,n,1);
+			sum++;
+		}
+	}
+	cout<<sum<<endl;
+	return 0;
+}
+
+
